@@ -1,241 +1,210 @@
-"use strict";
+export class LightBox{
+
+    constructor(className, allowKeyAction = true){
+        // Getting all images to be shown by LightBox
+        this.currentImg = -1;
+        this.images = document.getElementsByClassName(className);
+        this.imgLength = this.images.length;
 
 
-// Default Function that runs Init function
-export default function(className){
-    activatePlugin(className);
-    console.log("plugin installed successfully");
-}
+        // HTML code of LightBox
+        this.html_code = '<div id="lightBox"><div id="closeContainer"><button id="closeTab"><div><div></div></div></button></div><div id="imageContainer"><button id="prevImgBtn"><div></div></button><img src="" alt=""><button id="nextImgBtn"><div></div></button></div><div id="bottomIndicator"></div></div>';
 
 
-// Function attaching html code
+        // Attach the HTML code to Body
+        this.container = document.createElement('div');
+        this.attachHtmlCode()
 
-let html_code = '<div id="lightBox"><div id="closeContainer"><button id="closeTab"><div><div></div></div></button></div><div id="imageContainer"><button id="prevImgBtn"><div></div></button><img src="" alt=""><button id="nextImgBtn"><div></div></button></div><div id="bottomIndicator"></div></div>';
+        this.lightBox = document.getElementById('lightBox');
+        this.closeBtn = document.querySelector('#lightBox #closeContainer button');
+        this.bottomIndicator = document.querySelector('#lightBox #bottomIndicator');
+        this.preview = document.querySelector('#lightBox #imageContainer img');
+        this.prev = document.querySelector('#lightBox #imageContainer #prevImgBtn');
+        this.next = document.querySelector('#lightBox #imageContainer #nextImgBtn');
+        this.bottomConts = [];
 
-function attachHtmlCode(){
-    // Create a div element
-    let container = document.createElement('div');
-    container.style.visibility = 'hidden';
+        // Attaching containers to bottom indicators
+        this.addBottomContainers();
 
-    // Adding container at the starting of body 
-    let firstEle = document.body.firstElementChild;
-    document.body.insertBefore(container,firstEle);
+        // Attaching EventListener to Close Button
+        this.closeBtn.addEventListener('click',() => this.closePrompt());
 
-    // Add Html code to container
-    container.innerHTML = html_code;
+        // Attaching eventListeners to each images
+        this.addAction();
 
-    return container
-}
+        // Enabling Navigation Features
+        this.navigation();
 
-
-
-
-// Attaching containers to bottom indicators
-
-function addBottomContainers(num){
-    let bottomIndicator = document.querySelector('#lightBox #bottomIndicator');
-    let arr = [];
-    for(let i=0;i<num;i++){
-        let cont = document.createElement('div');
-        bottomIndicator.appendChild(cont);
-        arr.push(cont);
+        // Allow Navigation through Keys
+        if(allowKeyAction){
+            this.keyFeatures();
+        }
+        
+        // Allowing Navigation through Image indicators
+        this.addIndicatorAction();
     }
 
-    return arr;
-}
+    // Function to attach HTML code of lightBox at the start of the body
+    attachHtmlCode(){
+        // Add HTML code of LightBox to container
+        this.container.innerHTML = this.html_code;
 
+        // Adding container at the starting of body 
+        let firstEle = document.body.firstElementChild;
+        document.body.insertBefore(this.container,firstEle);
 
-// Change preview attribute and add Indicator style
-
-function changepreview(image,indicator){
-    preview.setAttribute('src',image.getAttribute("src"));
-    indicator.style.width = '1.3vh';
-    indicator.style.height = '1.3vh';
-    indicator.style.backgroundColor = 'var(--button-color)';
-}
-
-
-
-// remove Indicator style
-
-function remIndStle(){
-    bottomConts[currentImg].style.width = '1vh';
-    bottomConts[currentImg].style.height = '1vh';
-    bottomConts[currentImg].style.backgroundColor = 'transparent';
-}
-
-
-// close Btn Animation applier
-function closeAnimate(status,...args){
-    if(status){
-        closeBtn.firstElementChild.style.animation = `${args[0]} ${args[2]}s`;
-        closeBtn.firstElementChild.firstElementChild.style.animation = `${args[1]} ${args[2]}s`;
-
-        closeBtn.firstElementChild.style.animationDirection = args[3];
-        closeBtn.firstElementChild.firstElementChild.style.animationDirection = args[3];
-
-        setTimeout(() => closeAnimate(false), args[2]*1000);
+        // Hide The Container by default
+        this.container.style.visibility = 'hidden';
     }
-    else{
-        closeBtn.firstElementChild.style.animation = "none";
-        closeBtn.firstElementChild.firstElementChild.style.animation = "none";
+
+    // Function To add image position indicators at the bottom according to the number of images
+    addBottomContainers(){
+        for(let i=0;i<this.imgLength;i++){
+            let cont = document.createElement('div');
+            bottomIndicator.appendChild(cont);
+            this.bottomConts.push(cont);
+        }
     }
-}
+
+    // Function that Animates LightBox Closing sequence
+    closePrompt(){
+        this.lightBox.style.animation = 'lightBoxShrinkDown 0.4s';
+        setTimeout(() => this.container.style.visibility = 'hidden', 350);
+        this.remIndStle();
+    }
+
+    // Function Resets The Image Indicator At the Bottom to inactive
+    remIndStle(){
+        this.bottomConts[this.currentImg].style.width = '1vh';
+        this.bottomConts[this.currentImg].style.height = '1vh';
+        this.bottomConts[this.currentImg].style.backgroundColor = 'transparent';
+    }
+
+    // Function Adds click action to all lightBox images
+    addAction(){
+        for(let i = 0; i<this.imgLength; i++){
+            this.images[i].style.cursor = 'pointer';
+            this.images[i].addEventListener('click',() => {
+                this.container.style.visibility = 'visible';
+                this.changepreview(i);
+                this.lightBox.style.animation = 'lightBoxPopUp 0.3s';
+                this.closeAnimate(true,"openCross1","openCross2",0.4,"normal");
+                this.currentImg = i;
+            });
+        }
+    }
 
 
+    // Function that changes the display image of the LightBox as well as the ImageIndicator at the bottom
+    changepreview(i){
+        this.preview.setAttribute('src',this.images[i].getAttribute("src"));
+        this.bottomConts[i].style.width = '1.3vh';
+        this.bottomConts[i].style.height = '1.3vh';
+        this.bottomConts[i].style.backgroundColor = 'var(--button-color)';
+    }
 
-// Attaching eventListeners to each images
 
-let currentImg = -1;
+    // function that animates close button
+    closeAnimate(status,...args){
+        if(status){
+            this.closeBtn.firstElementChild.style.animation = `${args[0]} ${args[2]}s`;
+            this.closeBtn.firstElementChild.firstElementChild.style.animation = `${args[1]} ${args[2]}s`;
 
-function addAction(){
-    for(let i = 0; i<imgLength; i++){
-        images[i].style.cursor = 'pointer';
-        images[i].addEventListener('click',function(){
-            container.style.visibility = 'visible';
-            changepreview(this,bottomConts[i]);
-            lightBox.style.animation = 'lightBoxPopUp 0.4s';
-            closeAnimate(true,"openCross1","openCross2",0.4,"normal");
-            currentImg = i;
+            this.closeBtn.firstElementChild.style.animationDirection = args[3];
+            this.closeBtn.firstElementChild.firstElementChild.style.animationDirection = args[3];
+
+            setTimeout(() => this.closeAnimate(false), args[2]*1000);
+        }
+        else{
+            this.closeBtn.firstElementChild.style.animation = "none";
+            this.closeBtn.firstElementChild.firstElementChild.style.animation = "none";
+        }
+    }
+
+    // Function that applies click, mouseup and mousedown events to navigational buttons
+    navigation(){
+        this.prev.addEventListener('click',() => this.enableNavigation(-1));
+        this.prev.addEventListener('mousedown',() => {
+            this.prev.style.transform = 'scale(0.9)';
+            this.prev.style.filter = 'none';
+            this.prev.style.borderRightColor = 'var(--button-color)';
         });
+        this.prev.addEventListener('mouseup',() => {
+            this.prev.style.transform = 'scale(1)';
+        });
+        
+        
+        this.next.addEventListener('click',() => this.enableNavigation(1));
+        this.next.addEventListener('mousedown',() => {
+            this.next.style.transform = 'scale(0.9) rotate(180deg)';
+            this.next.style.borderRightColor = 'var(--button-color)';
+        });
+        this.next.addEventListener('mouseup',() => {
+            this.next.style.transform = 'scale(1) rotate(180deg)';
+        });
+        
+        // Hide Navigational buttons if only 1 image is present
+        if(this.imgLength == 1){
+            this.prev.style.visibility = 'hidden';
+            this.next.style.visibility = 'hidden';
+        }
     }
 
-    return preview;
-}
 
-
-// Close Light-Box
-function closePrompt(){
-    lightBox.style.animation = 'lightBoxShrinkDown 0.4s';
-    setTimeout(() => container.style.visibility = 'hidden', 350);
-    remIndStle();
-}
-
-
-
-// KeyFeatures
-function keyFeatures(key){
-    if(key.key =='Escape'){
-        closePrompt();
-    }else if(key.key =='ArrowLeft'){
-        enableNavigation(-1);
-    }else if(key.key =='ArrowRight'){
-        enableNavigation(1);
-    }
-}
-
-
-// Get Next Image after navigation
-
-function getNewImgInd(status){
-    let ind = currentImg;
-    status>0 ? ind ++ : ind --;
-
-    if(ind<0){
-        ind = imgLength-1;
-    }else if(ind>=imgLength){
-        ind = 0;
+    // Function that determines the direction of navigation
+    enableNavigation(status){
+        let newImg = this.getNewImgInd(status);
+        let dir = status>0?"normal":"reverse";
+        this.changeImage(newImg,dir);
     }
 
-    return ind;
-}
+    // Function that returns the index of to be displayed image
+    getNewImgInd(status){
+        let ind = this.currentImg;
+        status>0 ? ind ++ : ind --;
 
+        if(ind<0){
+            ind = this.imgLength-1;
+        }else if(ind>=this.imgLength){
+            ind = 0;
+        }
 
-// Change Image
-function changeImage(newImg,dir){
-    changepreview(images[newImg],bottomConts[newImg]);
-    remIndStle();
-    currentImg = newImg;
-    closeAnimate(true,"openCross1","openCross2",0.4,dir);
-}
-
-
-
-// Nav function
-
-function enableNavigation(status){
-    let newImg = getNewImgInd(status);
-    let dir = status>0?"normal":"reverse";
-    changeImage(newImg,dir);
-}
-
-
-// Navigation
-function navigation(){
-    let prev = document.querySelector('#lightBox #imageContainer #prevImgBtn');
-    let next = document.querySelector('#lightBox #imageContainer #nextImgBtn');
-
-    
-    prev.addEventListener('click',() => enableNavigation(-1));
-    prev.addEventListener('mousedown',function(){
-        this.style.transform = 'scale(0.9)';
-        this.style.filter = 'none';
-        this.style.borderRightColor = 'var(--button-color)';
-    });
-    prev.addEventListener('mouseup',function(){
-        this.style.transform = 'scale(1)';
-    });
-    
-    
-    next.addEventListener('click',() => enableNavigation(1));
-    next.addEventListener('mousedown',function(){
-        this.style.transform = 'scale(0.9) rotate(180deg)';
-        this.style.borderRightColor = 'var(--button-color)';
-    });
-    next.addEventListener('mouseup',function(){
-        this.style.transform = 'scale(1) rotate(180deg)';
-    });
-    
-    if(imgLength == 1){
-        prev.style.visibility = 'hidden';
-        next.style.visibility = 'hidden';
+        return ind;
     }
-}
 
-// Navigation through Bottom indicators
-function addIndicatorAction(length){
-    for(let i=0;i<length;i++){
-        bottomConts[i].addEventListener('click',function(){
-            if(currentImg!=i){
-                let dir = currentImg<i?"normal":"reverse";
-                changeImage(i,dir);
+
+    // Function that changes the display image in lightBox
+    changeImage(newImg,dir){
+        this.changepreview(newImg);
+        this.remIndStle();
+        this.currentImg = newImg;
+        this.closeAnimate(true,"openCross1","openCross2",0.4,dir);
+    }
+
+
+    // Function Allowing Navigation through Keyboard
+    keyFeatures(){
+        window.addEventListener('keydown',(key) => {
+            if(key.key =='Escape'){
+                this.closePrompt();
+            }else if(key.key =='ArrowLeft'){
+                this.enableNavigation(-1);
+            }else if(key.key =='ArrowRight'){
+                this.enableNavigation(1);
             }
         });
     }
-}
 
 
-// Init Function
-
-let imgLength, images, container, lightBox, closeBtn, preview, bottomConts, bottomIndicator;
-
-function activatePlugin(className){
-
-    // Attach HTMl Code
-    container = attachHtmlCode();
-
-    // Get all images with given className
-    images = document.getElementsByClassName(className);
-    imgLength = images.length;
-
-    // Attaching containers to bottom indicators
-    bottomConts = addBottomContainers(imgLength)
-
-    // Close Button Function
-    lightBox = document.getElementById('lightBox');
-    closeBtn = document.querySelector('#lightBox #closeContainer button');
-    closeBtn.addEventListener('click',closePrompt);
-
-    // Attaching eventListeners to each images
-    preview = document.querySelector('#lightBox #imageContainer img');
-    addAction();
-
-    // Navigate
-    navigation();
-
-    // KeyFeatures
-    window.addEventListener('keydown',keyFeatures);
-
-    // Navigation through Bottom indicators
-    addIndicatorAction(imgLength);
+    // Function Enablinhg Navigation through Bottom indicators
+    addIndicatorAction(){
+        for(let i=0;i<this.imgLength;i++){
+            this.bottomConts[i].addEventListener('click',() => {
+                if(this.currentImg!=i){
+                    let dir = this.currentImg<i?"normal":"reverse";
+                    this.changeImage(i,dir);
+                }
+            });
+        }
+    }
 }

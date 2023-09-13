@@ -13,7 +13,7 @@ export class LightBox{
 
         // Attach the HTML code to Body
         this.container = document.createElement('div');
-        this.attachHtmlCode()
+        this.#attachHtmlCode()
 
         this.lightBox = document.getElementById('lightBox');
         this.closeBtn = document.querySelector('#lightBox #closeContainer button');
@@ -24,28 +24,30 @@ export class LightBox{
         this.bottomConts = [];
 
         // Attaching containers to bottom indicators
-        this.addBottomContainers();
+        this.#addBottomContainers();
 
         // Attaching EventListener to Close Button
-        this.closeBtn.addEventListener('click',() => this.closePrompt());
+        this.closeBtn.addEventListener('click',() => this.#closePrompt());
 
         // Attaching eventListeners to each images
-        this.addAction();
+        this.#addAction();
 
         // Enabling Navigation Features
-        this.navigation();
+        this.#navigation();
 
         // Allow Navigation through Keys
         if(allowKeyAction){
-            this.keyFeatures();
+            this.#keyFeatures();
         }
         
         // Allowing Navigation through Image indicators
-        this.addIndicatorAction();
+        this.#addIndicatorAction();
+
+        console.log("LightBox plugin installed successfully")
     }
 
     // Function to attach HTML code of lightBox at the start of the body
-    attachHtmlCode(){
+    #attachHtmlCode(){
         // Add HTML code of LightBox to container
         this.container.innerHTML = this.html_code;
 
@@ -58,7 +60,7 @@ export class LightBox{
     }
 
     // Function To add image position indicators at the bottom according to the number of images
-    addBottomContainers(){
+    #addBottomContainers(){
         for(let i=0;i<this.imgLength;i++){
             let cont = document.createElement('div');
             bottomIndicator.appendChild(cont);
@@ -67,28 +69,28 @@ export class LightBox{
     }
 
     // Function that Animates LightBox Closing sequence
-    closePrompt(){
+    #closePrompt(){
         this.lightBox.style.animation = 'lightBoxShrinkDown 0.4s';
         setTimeout(() => this.container.style.visibility = 'hidden', 350);
-        this.remIndStle();
+        this.#remIndStle();
     }
 
     // Function Resets The Image Indicator At the Bottom to inactive
-    remIndStle(){
+    #remIndStle(){
         this.bottomConts[this.currentImg].style.width = '1vh';
         this.bottomConts[this.currentImg].style.height = '1vh';
         this.bottomConts[this.currentImg].style.backgroundColor = 'transparent';
     }
 
     // Function Adds click action to all lightBox images
-    addAction(){
+    #addAction(){
         for(let i = 0; i<this.imgLength; i++){
             this.images[i].style.cursor = 'pointer';
             this.images[i].addEventListener('click',() => {
                 this.container.style.visibility = 'visible';
-                this.changepreview(i);
+                this.#changepreview(i);
                 this.lightBox.style.animation = 'lightBoxPopUp 0.3s';
-                this.closeAnimate(true,"openCross1","openCross2",0.4,"normal");
+                this.#closeAnimate(true,"openCross1","openCross2",0.4,"normal");
                 this.currentImg = i;
             });
         }
@@ -96,7 +98,7 @@ export class LightBox{
 
 
     // Function that changes the display image of the LightBox as well as the ImageIndicator at the bottom
-    changepreview(i){
+    #changepreview(i){
         this.preview.setAttribute('src',this.images[i].getAttribute("src"));
         this.bottomConts[i].style.width = '1.3vh';
         this.bottomConts[i].style.height = '1.3vh';
@@ -105,7 +107,7 @@ export class LightBox{
 
 
     // function that animates close button
-    closeAnimate(status,...args){
+    #closeAnimate(status,...args){
         if(status){
             this.closeBtn.firstElementChild.style.animation = `${args[0]} ${args[2]}s`;
             this.closeBtn.firstElementChild.firstElementChild.style.animation = `${args[1]} ${args[2]}s`;
@@ -113,7 +115,7 @@ export class LightBox{
             this.closeBtn.firstElementChild.style.animationDirection = args[3];
             this.closeBtn.firstElementChild.firstElementChild.style.animationDirection = args[3];
 
-            setTimeout(() => this.closeAnimate(false), args[2]*1000);
+            setTimeout(() => this.#closeAnimate(false), args[2]*1000);
         }
         else{
             this.closeBtn.firstElementChild.style.animation = "none";
@@ -122,8 +124,8 @@ export class LightBox{
     }
 
     // Function that applies click, mouseup and mousedown events to navigational buttons
-    navigation(){
-        this.prev.addEventListener('click',() => this.enableNavigation(-1));
+    #navigation(){
+        this.prev.addEventListener('click',() => this.#enableNavigation(-1));
         this.prev.addEventListener('mousedown',() => {
             this.prev.style.transform = 'scale(0.9)';
             this.prev.style.filter = 'none';
@@ -134,7 +136,7 @@ export class LightBox{
         });
         
         
-        this.next.addEventListener('click',() => this.enableNavigation(1));
+        this.next.addEventListener('click',() => this.#enableNavigation(1));
         this.next.addEventListener('mousedown',() => {
             this.next.style.transform = 'scale(0.9) rotate(180deg)';
             this.next.style.borderRightColor = 'var(--button-color)';
@@ -152,14 +154,14 @@ export class LightBox{
 
 
     // Function that determines the direction of navigation
-    enableNavigation(status){
-        let newImg = this.getNewImgInd(status);
+    #enableNavigation(status){
+        let newImg = this.#getNewImgInd(status);
         let dir = status>0?"normal":"reverse";
-        this.changeImage(newImg,dir);
+        this.#changeImage(newImg,dir);
     }
 
     // Function that returns the index of to be displayed image
-    getNewImgInd(status){
+    #getNewImgInd(status){
         let ind = this.currentImg;
         status>0 ? ind ++ : ind --;
 
@@ -174,35 +176,35 @@ export class LightBox{
 
 
     // Function that changes the display image in lightBox
-    changeImage(newImg,dir){
-        this.changepreview(newImg);
-        this.remIndStle();
+    #changeImage(newImg,dir){
+        this.#changepreview(newImg);
+        this.#remIndStle();
         this.currentImg = newImg;
-        this.closeAnimate(true,"openCross1","openCross2",0.4,dir);
+        this.#closeAnimate(true,"openCross1","openCross2",0.4,dir);
     }
 
 
     // Function Allowing Navigation through Keyboard
-    keyFeatures(){
+    #keyFeatures(){
         window.addEventListener('keydown',(key) => {
             if(key.key =='Escape'){
-                this.closePrompt();
+                this.#closePrompt();
             }else if(key.key =='ArrowLeft'){
-                this.enableNavigation(-1);
+                this.#enableNavigation(-1);
             }else if(key.key =='ArrowRight'){
-                this.enableNavigation(1);
+                this.#enableNavigation(1);
             }
         });
     }
 
 
     // Function Enablinhg Navigation through Bottom indicators
-    addIndicatorAction(){
+    #addIndicatorAction(){
         for(let i=0;i<this.imgLength;i++){
             this.bottomConts[i].addEventListener('click',() => {
                 if(this.currentImg!=i){
                     let dir = this.currentImg<i?"normal":"reverse";
-                    this.changeImage(i,dir);
+                    this.#changeImage(i,dir);
                 }
             });
         }
